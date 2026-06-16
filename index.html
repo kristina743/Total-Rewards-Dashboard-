@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Total Compensation Dashboard</title>
+<link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f4;
+    --bg-tertiary: #f0efed;
+    --bg-info: #e6f1fb;
+    --bg-success: #eaf3de;
+    --bg-warning: #faeeda;
+    --bg-danger: #fcebeb;
+    --text-primary: #1a1a18;
+    --text-secondary: #5f5e5a;
+    --text-tertiary: #888780;
+    --text-info: #0c447c;
+    --text-success: #27500a;
+    --text-warning: #633806;
+    --text-danger: #791f1f;
+    --border: rgba(0,0,0,0.12);
+    --border-md: rgba(0,0,0,0.22);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --purple: #534AB7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1c1c1a;
+      --bg-secondary: #252523;
+      --bg-tertiary: #2c2c2a;
+      --bg-info: #042c53;
+      --bg-success: #173404;
+      --bg-warning: #412402;
+      --bg-danger: #501313;
+      --text-primary: #f0efed;
+      --text-secondary: #b4b2a9;
+      --text-tertiary: #888780;
+      --text-info: #85b7eb;
+      --text-success: #97c459;
+      --text-warning: #fac775;
+      --text-danger: #f09595;
+      --border: rgba(255,255,255,0.12);
+      --border-md: rgba(255,255,255,0.22);
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg-tertiary); color: var(--text-primary); min-height: 100vh; }
+
+  .page-header { background: var(--bg-primary); border-bottom: 0.5px solid var(--border); padding: 1rem 2rem; display: flex; align-items: center; gap: 12px; }
+  .page-header h1 { font-size: 18px; font-weight: 500; }
+  .page-header .logo { width: 32px; height: 32px; background: var(--purple); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; }
+  .page-header .logo i { color: #fff; font-size: 18px; }
+  .page-header .subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 0.5px solid var(--border); }
+  .tab { font-size: 14px; padding: 8px 14px; cursor: pointer; border-bottom: 2px solid transparent; color: var(--text-secondary); background: none; border-top: none; border-left: none; border-right: none; font-family: var(--font); display: flex; align-items: center; gap: 6px; }
+  .tab.active { color: var(--text-primary); border-bottom-color: var(--purple); font-weight: 500; }
+  .tab:hover:not(.active) { color: var(--text-primary); }
+  .panel { display: none; } .panel.active { display: block; }
+
+  .card { background: var(--bg-primary); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; }
+  .metric-card { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 1rem; display: flex; flex-direction: column; gap: 4px; }
+  .metric-label { font-size: 13px; color: var(--text-secondary); }
+  .metric-value { font-size: 20px; font-weight: 500; }
+  .section-title { font-size: 12px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .05em; margin: 0 0 12px; }
+
+  .grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .mb1 { margin-bottom: 1rem; } .mb15 { margin-bottom: 1.5rem; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1rem; }
+  .field label { font-size: 13px; color: var(--text-secondary); }
+  input[type=number], input[type=text], select {
+    width: 100%; padding: 8px 10px; border: 0.5px solid var(--border-md); border-radius: var(--radius-md);
+    background: var(--bg-primary); color: var(--text-primary); font-family: var(--font); font-size: 14px;
+    height: 36px; outline: none;
+  }
+  input[type=number]:focus, select:focus { border-color: var(--purple); box-shadow: 0 0 0 2px rgba(83,74,183,0.15); }
+  input[type=range] { width: 100%; accent-color: var(--purple); }
+  .prefix-wrap { position: relative; }
+  .prefix-wrap span { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 14px; pointer-events: none; }
+  .prefix-wrap input { padding-left: 22px; }
+
+  .cost-pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: var(--radius-md); font-size: 12px; }
+  .cost-pill.employer { background: var(--bg-success); color: var(--text-success); }
+  .cost-pill.employee { background: var(--bg-warning); color: var(--text-warning); }
+
+  .ins-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .ins-row:last-child { border-bottom: none; }
+  .ins-val { font-size: 14px; font-weight: 500; text-align: right; flex-shrink: 0; }
+  .ins-val-sub { font-size: 12px; color: var(--text-secondary); }
+
+  .badge-er { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: var(--radius-md); background: var(--bg-success); color: var(--text-success); margin-left: 6px; }
+  .equity-row { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 14px; }
+  .equity-row:last-child { border-bottom: none; }
+  .bar-wrap { background: var(--bg-secondary); border-radius: 4px; height: 6px; overflow: hidden; margin: 3px 0; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width .3s; }
+
+  .total-hero { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 1.5rem; text-align: center; }
+  .total-hero .big { font-size: 40px; font-weight: 500; }
+  .total-hero .sub { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+
+  .info-box { background: var(--bg-info); border: 0.5px solid rgba(55,138,221,0.3); border-radius: var(--radius-md); padding: 10px 14px; font-size: 13px; color: var(--text-info); margin-top: 12px; }
+  .cta-btn { display: block; width: 100%; padding: 12px; border-radius: var(--radius-md); border: 0.5px solid var(--border-md); background: transparent; font-size: 14px; font-weight: 500; cursor: pointer; text-align: center; margin-top: .75rem; color: var(--text-primary); font-family: var(--font); }
+  .cta-btn:hover { background: var(--bg-secondary); }
+
+  /* Perk cards */
+  .perk-card { background: var(--bg-primary); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+  .perk-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .perk-card-title { font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  .perk-card-title i { font-size: 18px; color: var(--purple); }
+  .perk-value { font-size: 15px; font-weight: 500; white-space: nowrap; }
+  .perk-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+  .perk-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .perk-pill { font-size: 12px; padding: 3px 9px; border-radius: var(--radius-md); background: var(--bg-secondary); color: var(--text-secondary); border: 0.5px solid var(--border); }
+  .elevate-sub { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: 10px; }
+  .elevate-pillar { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 10px 12px; }
+  .elevate-pillar-name { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .elevate-pillar-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+  .pto-note { font-size: 13px; color: var(--text-secondary); margin-top: 8px; font-style: italic; }
+
+  /* Grant table */
+  .grant-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+  .grant-table th { font-size: 11px; font-weight: 500; color: var(--text-secondary); text-align: left; padding: 6px 8px; border-bottom: 0.5px solid var(--border); white-space: nowrap; }
+  .grant-table td { padding: 6px 4px; vertical-align: middle; border-bottom: 0.5px solid var(--border); }
+  .grant-table tr:last-child td { border-bottom: none; }
+  .grant-table input, .grant-table select { font-size: 12px; padding: 5px 6px; height: 30px; }
+  .grant-table input[type=number] { -moz-appearance: textfield; }
+  .grant-table input[type=number]::-webkit-outer-spin-button,
+  .grant-table input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .del-btn { background: none; border: none; cursor: pointer; color: var(--text-tertiary); font-size: 16px; padding: 2px 6px; border-radius: 4px; }
+  .del-btn:hover { color: var(--text-danger); background: var(--bg-danger); }
+  .add-grant-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 7px 14px; border-radius: var(--radius-md); border: 0.5px solid var(--border-md); background: transparent; cursor: pointer; color: var(--text-primary); font-family: var(--font); margin-top: 12px; }
+  .add-grant-btn:hover { background: var(--bg-secondary); }
+  .col-type{width:22%} .col-opts{width:14%} .col-strike{width:14%} .col-vest{width:13%} .col-intrinsic{width:16%} .col-del{width:7%}
+  .badge-type { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: var(--radius-md); background: var(--bg-secondary); color: var(--text-secondary); border: 0.5px solid var(--border); margin-left: 8px; font-weight: 400; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="logo"><i class="ti ti-chart-bar"></i></div>
+  <div>
+    <div class="page-header h1" style="font-size:18px;font-weight:500">Total Compensation Dashboard</div>
+    <div class="subtitle">Enter your details to see your full compensation &amp; benefits picture</div>
+  </div>
+</div>
+
+<div class="container">
+<div class="tabs">
+  <button class="tab active" onclick="switchTab(event,'pay')"><i class="ti ti-coin"></i> Pay</button>
+  <button class="tab" onclick="switchTab(event,'benefits')"><i class="ti ti-heart"></i> Benefits</button>
+  <button class="tab" onclick="switchTab(event,'equity')"><i class="ti ti-chart-line"></i> Equity</button>
+  <button class="tab" onclick="switchTab(event,'perks')"><i class="ti ti-star"></i> Perks</button>
+  <button class="tab" onclick="switchTab(event,'summary')"><i class="ti ti-layout-dashboard"></i> Summary</button>
+</div>
+
+<!-- PAY -->
+<div id="panel-pay" class="panel active">
+  <div class="grid2">
+    <div class="card">
+      <p class="section-title">Base compensation</p>
+      <div class="field"><label>Base salary</label>
+        <div class="prefix-wrap"><span>$</span><input type="number" id="base" value="120000" min="0" step="1000" oninput="calc()"></div>
+      </div>
+      <div class="field"><label>Pay frequency</label>
+        <select id="freq" onchange="calc()">
+          <option value="1">Annual</option><option value="12">Monthly</option>
+          <option value="26">Bi-weekly</option><option value="24">Semi-monthly</option>
+        </select>
+      </div>
+    </div>
+    <div class="card">
+      <p class="section-title">Variable pay</p>
+      <div class="field"><label>Target bonus (%)</label>
+        <input type="range" min="0" max="100" value="15" id="bonus-pct" oninput="syncBonus(this.value)" step="1">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary)"><span>0%</span><span id="bonus-pct-lbl">15%</span><span>100%</span></div>
+      </div>
+      <div class="field"><label>Expected achievement (%)</label>
+        <input type="range" min="0" max="150" value="100" id="bonus-ach" oninput="syncAch(this.value)" step="1">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary)"><span>0%</span><span id="bonus-ach-lbl">100%</span><span>150%</span></div>
+      </div>
+      <div class="field"><label>Other variable / commission</label>
+        <div class="prefix-wrap"><span>$</span><input type="number" id="commission" value="0" min="0" step="500" oninput="calc()"></div>
+      </div>
+    </div>
+  </div>
+  <div class="grid4">
+    <div class="metric-card"><span class="metric-label">Base salary</span><span class="metric-value" id="m-base">$120,000</span></div>
+    <div class="metric-card"><span class="metric-label">Target bonus</span><span class="metric-value" id="m-bonus">$18,000</span></div>
+    <div class="metric-card"><span class="metric-label">Expected bonus</span><span class="metric-value" id="m-exp-bonus">$18,000</span></div>
+    <div class="metric-card"><span class="metric-label">Total cash</span><span class="metric-value" id="m-cash">$138,000</span></div>
+  </div>
+</div>
+
+<!-- BENEFITS -->
+<div id="panel-benefits" class="panel">
+  <div class="grid2">
+    <div class="card mb1">
+      <p class="section-title">Medical plan</p>
+      <div class="field"><label>Select plan</label>
+        <select id="med-plan" onchange="calc()">
+          <option value="kpnc">Kaiser Permanente – Northern California</option>
+          <option value="kpsc">Kaiser Permanente – Southern California</option>
+          <option value="cigna-epo">Cigna – EPO Plan</option>
+          <option value="cigna-hsa" selected>Cigna – HSA Plan</option>
+          <option value="cigna-ppo">Cigna – PPO Plan</option>
+          <option value="cigna-epo-ut">Cigna – EPO Plan Utah</option>
+          <option value="cigna-hsa-ut">Cigna – HSA Plan Utah</option>
+          <option value="cigna-ppo-ut">Cigna – PPO Plan Utah</option>
+        </select>
+      </div>
+      <div class="field"><label>Coverage level</label>
+        <select id="med-cov" onchange="calc()">
+          <option value="ee">Employee only</option><option value="es">Employee &amp; Spouse</option>
+          <option value="ef">Employee &amp; Family</option><option value="ec">Employee &amp; Child(ren)</option>
+        </select>
+      </div>
+      <div id="med-costs"></div>
+    </div>
+    <div class="card mb1">
+      <p class="section-title">Dental plan</p>
+      <div class="field"><label>Select plan</label>
+        <select id="den-plan" onchange="calc()">
+          <option value="base" selected>MetLife – Dental Base Plan</option>
+          <option value="buyup">MetLife – Dental Buy-up Plan</option>
+        </select>
+      </div>
+      <div class="field"><label>Coverage level</label>
+        <select id="den-cov" onchange="calc()">
+          <option value="ee">Employee only</option><option value="es">Employee &amp; Spouse</option>
+          <option value="ef">Employee &amp; Family</option><option value="ec">Employee &amp; Child(ren)</option>
+        </select>
+      </div>
+      <div id="den-costs"></div>
+      <p class="section-title" style="margin-top:1rem">Vision plan</p>
+      <div class="field"><label>Coverage level</label>
+        <select id="vis-cov" onchange="calc()">
+          <option value="ee">Employee only</option><option value="es">Employee &amp; Spouse</option>
+          <option value="ef">Employee &amp; Family</option><option value="ec">Employee &amp; Child(ren)</option>
+        </select>
+      </div>
+      <div id="vis-costs"></div>
+    </div>
+  </div>
+  <div class="card mb1">
+    <p class="section-title">HSA employer contribution</p>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div class="prefix-wrap" style="width:150px"><span>$</span><input type="number" id="b-hsa" value="1000" min="0" step="100" oninput="calc()"></div>
+      <span style="font-size:13px;color:var(--text-secondary)">annual employer contribution to your HSA</span>
+    </div>
+  </div>
+  <div class="card mb15">
+    <p class="section-title">Employer-paid insurance <span class="badge-er">100% employer paid</span></p>
+    <div id="insurance-rows"></div>
+  </div>
+  <div class="grid4">
+    <div class="metric-card"><span class="metric-label">Employer pays (medical)</span><span class="metric-value" id="m-med-er">—</span></div>
+    <div class="metric-card"><span class="metric-label">Your cost (medical)</span><span class="metric-value" id="m-med-ee">—</span></div>
+    <div class="metric-card"><span class="metric-label">Dental + vision (employer)</span><span class="metric-value" id="m-dv-er">—</span></div>
+    <div class="metric-card"><span class="metric-label">Total benefits value</span><span class="metric-value" id="m-benefits">—</span></div>
+  </div>
+</div>
+
+<!-- EQUITY -->
+<div id="panel-equity" class="panel">
+  <div class="card mb1" style="overflow-x:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <p class="section-title" style="margin:0">Stock option grants <span class="badge-type">Equity grant type</span></p>
+      <span style="font-size:12px;color:var(--text-secondary)">All grants share one current FMV</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 12px;background:var(--bg-secondary);border-radius:var(--radius-md);flex-wrap:wrap">
+      <span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">Current FMV per share</span>
+      <div class="prefix-wrap" style="width:130px"><span>$</span><input type="number" id="shared-fmv" value="12.00" min="0.01" step="0.01" oninput="calc()" style="height:32px;font-size:13px"></div>
+      <span style="font-size:12px;color:var(--text-tertiary)">Applied to all grants below</span>
+    </div>
+    <table class="grant-table">
+      <thead>
+        <tr>
+          <th class="col-type">Grant type</th>
+          <th class="col-opts">Options</th>
+          <th class="col-strike">Strike price</th>
+          <th class="col-vest">Vest (yrs)</th>
+          <th class="col-intrinsic">Intrinsic value/yr</th>
+          <th class="col-del"></th>
+        </tr>
+      </thead>
+      <tbody id="grant-tbody"></tbody>
+    </table>
+    <button class="add-grant-btn" onclick="addGrant()"><i class="ti ti-plus"></i> Add grant</button>
+  </div>
+  <div class="card mb1">
+    <p class="section-title">Grant breakdown</p>
+    <div id="grant-detail"></div>
+  </div>
+  <div class="grid4">
+    <div class="metric-card"><span class="metric-label">Total options</span><span class="metric-value" id="m-eq-total-opts">—</span></div>
+    <div class="metric-card"><span class="metric-label">Total grant value</span><span class="metric-value" id="m-eq-grant-val">—</span></div>
+    <div class="metric-card"><span class="metric-label">Annual intrinsic value</span><span class="metric-value" id="m-eq-intrinsic-ann">—</span></div>
+    <div class="metric-card"><span class="metric-label">% of total comp</span><span class="metric-value" id="m-eq-pct">—</span></div>
+  </div>
+</div>
+
+<!-- PERKS -->
+<div id="panel-perks" class="panel">
+  <div class="perk-card">
+    <div class="perk-card-header">
+      <div class="perk-card-title"><i class="ti ti-device-mobile"></i>Phone &amp; internet stipend</div>
+      <div class="perk-value">$1,200/yr</div>
+    </div>
+    <div class="perk-desc">$100/month to cover your personal phone and internet costs. Paid directly as a monthly stipend — no receipts required.</div>
+  </div>
+  <div class="perk-card">
+    <div class="perk-card-header">
+      <div class="perk-card-title"><i class="ti ti-sparkles"></i>Elevate Program</div>
+      <div class="perk-value">$750/yr</div>
+    </div>
+    <div class="perk-desc">An annual stipend you can use flexibly across three pillars — or combine them however works best for you. No People Team pre-approval required; your manager approves in Airbase.</div>
+    <div class="elevate-sub">
+      <div class="elevate-pillar">
+        <div class="elevate-pillar-name"><i class="ti ti-book" style="font-size:14px;margin-right:5px;color:var(--purple)"></i>Learning Fund</div>
+        <div class="elevate-pillar-desc">Courses, certifications, conferences, books, coaching, and professional memberships.</div>
+      </div>
+      <div class="elevate-pillar">
+        <div class="elevate-pillar-name"><i class="ti ti-armchair" style="font-size:14px;margin-right:5px;color:var(--purple)"></i>Workspace Fund</div>
+        <div class="elevate-pillar-desc">Ergonomic furniture, tech accessories, monitors, webcams, and office tools.</div>
+      </div>
+      <div class="elevate-pillar">
+        <div class="elevate-pillar-name"><i class="ti ti-activity" style="font-size:14px;margin-right:5px;color:var(--purple)"></i>Wellness Fund</div>
+        <div class="elevate-pillar-desc">Gym memberships, fitness classes, mental health apps, and wellness retreats.</div>
+      </div>
+    </div>
+    <div class="perk-pills" style="margin-top:12px">
+      <span class="perk-pill">No rollover — use within calendar year</span>
+      <span class="perk-pill">Manager approves in Airbase</span>
+      <span class="perk-pill">May be subject to tax by jurisdiction</span>
+    </div>
+  </div>
+  <div class="perk-card">
+    <div class="perk-card-header">
+      <div class="perk-card-title"><i class="ti ti-beach"></i>Unlimited PTO</div>
+      <div class="perk-value" style="text-align:right">Unlimited<div style="font-size:12px;font-weight:400;color:var(--text-secondary)">3-week minimum</div></div>
+    </div>
+    <div class="perk-desc">Flexible, unlimited paid time off with a minimum of 3 weeks (15 days) encouraged per year. Estimated annual value based on your salary is shown below.</div>
+    <div style="margin-top:12px;padding:10px 14px;background:var(--bg-secondary);border-radius:var(--radius-md);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <span style="font-size:13px;color:var(--text-secondary)">Estimated value (3-week minimum, based on your salary)</span>
+      <span style="font-size:15px;font-weight:500" id="pto-value">—</span>
+    </div>
+    <p class="pto-note">Actual value is flexible — unlimited PTO means you can take more whenever you need it.</p>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px">
+      <span style="font-size:14px;font-weight:500">Total annual perk value</span>
+      <span style="font-size:20px;font-weight:500" id="m-perks-total">—</span>
+    </div>
+    <div style="font-size:12px;color:var(--text-secondary);margin-top:6px">Phone stipend $1,200 + Elevate Program $750 + PTO estimated value <span id="pto-breakdown">—</span></div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div id="panel-summary" class="panel">
+  <div class="total-hero">
+    <div class="sub">Total annual compensation</div>
+    <div class="big" id="s-total">—</div>
+    <div class="sub" style="margin-top:8px" id="s-breakdown"></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <p class="section-title">Compensation breakdown</p>
+      <div style="display:flex;justify-content:center;margin:1rem 0"><canvas id="donut" width="140" height="140"></canvas></div>
+      <div id="donut-legend"></div>
+    </div>
+    <div class="card">
+      <p class="section-title">Component detail</p>
+      <div id="summary-rows"></div>
+      <div class="info-box"><i class="ti ti-info-circle"></i> Your out-of-pocket benefits cost is <strong id="s-ee-cost">—</strong>/yr and is not included in the total above.</div>
+    </div>
+  </div>
+</div>
+</div><!-- /container -->
+
+<script>
+const PLANS={
+  medical:{
+    'kpnc':        {er:[827.29,1387.03,1931.59,1176.12],emp:[35.31,510.69,742.47,376.56]},
+    'kpsc':        {er:[456.39,571.06,781.82,508.51],   emp:[1.88,437.13,638.82,316.38]},
+    'cigna-epo':   {er:[755.23,1319.99,1768.00,1119.10],emp:[63.14,480.52,769.04,354.05]},
+    'cigna-hsa':   {er:[693.11,1174.74,1636.55,993.56], emp:[40.12,438.26,636.37,326.21]},
+    'cigna-ppo':   {er:[811.67,1356.58,1888.05,1149.98],emp:[30.53,496.17,722.65,365.96]},
+    'cigna-epo-ut':{er:[918.34,1677.49,2271.75,1411.58],emp:[82.61,522.70,828.48,388.57]},
+    'cigna-hsa-ut':{er:[826.64,1468.50,2050.51,1233.91],emp:[48.19,456.02,661.40,340.75]},
+    'cigna-ppo-ut':{er:[957.51,1677.48,2340.27,1412.53],emp:[39.36,515.60,750.03,381.85]},
+  },
+  dental:{
+    'base': {er:[47.47,66.78,109.06,82.72],emp:[0,28,51,30]},
+    'buyup':{er:[44.94,71.43,104.60,82.07],emp:[18,54,107,67]},
+  },
+  vision:{er:[7.67,11.35,16.75,11.52],emp:[0,4,8,4]}
+};
+const COV_IDX={ee:0,es:1,ef:2,ec:3};
+const PHONE_STIPEND=1200,ELEVATE=750;
+const GRANT_TYPES=['Initial grant','Refresh grant','Promotional grant','Performance grant','Retention grant','Other'];
+const TYPE_COLORS=['#534AB7','#1D9E75','#378ADD','#BA7517','#D85A30','#888780'];
+
+let grants=[
+  {id:1,type:'Initial grant',options:10000,strike:10.00,vestYears:4},
+  {id:2,type:'Refresh grant',options:2500,strike:11.50,vestYears:4},
+];
+let nextId=3;
+
+const fmt=n=>'$'+Math.round(n).toLocaleString();
+const fmtD=n=>'$'+parseFloat(n).toFixed(2);
+const fmtN=n=>Math.round(n).toLocaleString();
+
+function getAnnualBase(){
+  const base=parseFloat(document.getElementById('base').value)||0;
+  const freq=parseInt(document.getElementById('freq').value)||1;
+  return base*(freq===1?1:freq);
+}
+
+function calcInsurance(s){
+  const cov=Math.min(s,250000);
+  const lifeM=(cov/1000)*0.063,addM=(cov/1000)*0.014;
+  const stdM=((s/52)*0.60/10)*0.039;
+  const ltdM=((s/12)*0.60/100)*0.105;
+  return{
+    life:{label:'Basic Life Insurance',sub:`Coverage: ${fmt(cov)} (100% of salary, cap $250k)`,monthly:lifeM,annual:lifeM*12},
+    add: {label:'AD&D',sub:`Coverage: ${fmt(cov)} (100% of salary, cap $250k)`,monthly:addM,annual:addM*12},
+    std: {label:'Short Term Disability',sub:`Benefit: ${fmtD((s/52)*0.60)}/wk (60% of weekly wages)`,monthly:stdM,annual:stdM*12},
+    ltd: {label:'Long Term Disability',sub:`Benefit: ${fmtD((s/12)*0.60)}/mo (60% of monthly wages)`,monthly:ltdM,annual:ltdM*12},
+  };
+}
+
+function renderInsuranceRows(base){
+  const ins=calcInsurance(base);
+  const rows=[ins.life,ins.add,ins.std,ins.ltd];
+  document.getElementById('insurance-rows').innerHTML=rows.map(r=>`
+    <div class="ins-row">
+      <div><div style="font-size:14px">${r.label}</div><div style="font-size:12px;color:var(--text-secondary);margin-top:2px">${r.sub}</div></div>
+      <div class="ins-val">${fmtD(r.monthly)}<span class="ins-val-sub">/mo</span><div class="ins-val-sub">${fmt(r.annual)}/yr</div></div>
+    </div>`).join('');
+  return rows.reduce((s,r)=>s+r.annual,0);
+}
+
+function renderCostBlock(id,erM,empM){
+  document.getElementById(id).innerHTML=`
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+      <span class="cost-pill employer"><i class="ti ti-building" style="font-size:13px"></i>Employer: ${fmtD(erM)}/mo</span>
+      <span class="cost-pill employee"><i class="ti ti-user" style="font-size:13px"></i>Your cost: ${fmtD(empM)}/mo</span>
+    </div>
+    <div style="font-size:12px;color:var(--text-tertiary);margin-top:6px">Annual: employer ${fmt(erM*12)} · you ${fmt(empM*12)}</div>`;
+}
+
+function addGrant(){
+  grants.push({id:nextId++,type:'Refresh grant',options:2500,strike:10.00,vestYears:4});
+  renderGrantTable(); calc();
+}
+function removeGrant(id){
+  if(grants.length<=1) return;
+  grants=grants.filter(g=>g.id!==id);
+  renderGrantTable(); calc();
+}
+function updateGrant(id,field,val){
+  const g=grants.find(g=>g.id===id);
+  if(!g) return;
+  if(field==='options'||field==='vestYears') g[field]=parseInt(val)||0;
+  else if(field==='strike') g[field]=parseFloat(val)||0;
+  else g[field]=val;
+  calc();
+}
+
+function renderGrantTable(){
+  const fmv=parseFloat(document.getElementById('shared-fmv').value)||0;
+  document.getElementById('grant-tbody').innerHTML=grants.map(g=>{
+    const spread=Math.max(0,fmv-g.strike);
+    const intrinsicAnn=(g.options/Math.max(g.vestYears,1))*spread;
+    const typeOpts=GRANT_TYPES.map(t=>`<option value="${t}"${t===g.type?'selected':''}>${t}</option>`).join('');
+    const vestOpts=[1,2,3,4,5].map(y=>`<option value="${y}"${y===g.vestYears?'selected':''}>${y} yr</option>`).join('');
+    return `<tr>
+      <td class="col-type"><select onchange="updateGrant(${g.id},'type',this.value)">${typeOpts}</select></td>
+      <td class="col-opts"><input type="number" value="${g.options}" min="0" step="100" onchange="updateGrant(${g.id},'options',this.value)" oninput="updateGrant(${g.id},'options',this.value)"></td>
+      <td class="col-strike"><div class="prefix-wrap"><span>$</span><input type="number" value="${g.strike.toFixed(2)}" min="0.01" step="0.01" style="padding-left:18px" onchange="updateGrant(${g.id},'strike',this.value)" oninput="updateGrant(${g.id},'strike',this.value)"></div></td>
+      <td class="col-vest"><select onchange="updateGrant(${g.id},'vestYears',this.value)">${vestOpts}</select></td>
+      <td class="col-intrinsic" style="font-weight:500;color:${spread>0?'var(--text-success)':'var(--text-secondary)'}">${spread>0?fmt(intrinsicAnn):'At strike'}</td>
+      <td class="col-del"><button class="del-btn" onclick="removeGrant(${g.id})" ${grants.length<=1?'disabled':''}><i class="ti ti-x"></i></button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderGrantDetail(fmv){
+  const el=document.getElementById('grant-detail');
+  el.innerHTML=grants.map((g,i)=>{
+    const spread=Math.max(0,fmv-g.strike);
+    const perYear=Math.round(g.options/Math.max(g.vestYears,1));
+    const intrinsicAnn=perYear*spread;
+    const color=TYPE_COLORS[GRANT_TYPES.indexOf(g.type)%TYPE_COLORS.length];
+    return `<div style="margin-bottom:${i<grants.length-1?'16px':'0'};padding-bottom:${i<grants.length-1?'16px':'0'};border-bottom:${i<grants.length-1?'0.5px solid var(--border)':'none'}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></div>
+        <span style="font-size:14px;font-weight:500">${g.type}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px">
+        <div style="font-size:12px;color:var(--text-secondary)">Options granted<br><span style="font-size:14px;font-weight:500;color:var(--text-primary)">${fmtN(g.options)}</span></div>
+        <div style="font-size:12px;color:var(--text-secondary)">Strike price<br><span style="font-size:14px;font-weight:500;color:var(--text-primary)">${fmtD(g.strike)}</span></div>
+        <div style="font-size:12px;color:var(--text-secondary)">Spread/share<br><span style="font-size:14px;font-weight:500;color:${spread>0?'var(--text-success)':'var(--text-secondary)'}">${fmtD(spread)}</span></div>
+        <div style="font-size:12px;color:var(--text-secondary)">Vesting<br><span style="font-size:14px;font-weight:500;color:var(--text-primary)">${fmtN(perYear)} opts/yr over ${g.vestYears} yrs</span></div>
+        <div style="font-size:12px;color:var(--text-secondary)">Grant value<br><span style="font-size:14px;font-weight:500;color:var(--text-primary)">${fmt(g.options*g.strike)}</span></div>
+        <div style="font-size:12px;color:var(--text-secondary)">Intrinsic value/yr<br><span style="font-size:14px;font-weight:500;color:${spread>0?'var(--text-success)':'var(--text-secondary)'}">${spread>0?fmt(intrinsicAnn):'At strike'}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function switchTab(e,id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+  if(id==='summary') drawDonut();
+}
+function syncBonus(v){document.getElementById('bonus-pct-lbl').textContent=v+'%';calc();}
+function syncAch(v){document.getElementById('bonus-ach-lbl').textContent=v+'%';calc();}
+
+function calc(){
+  const annualBase=getAnnualBase();
+  const bPct=parseFloat(document.getElementById('bonus-pct').value)||0;
+  const bAch=parseFloat(document.getElementById('bonus-ach').value)||0;
+  const commission=parseFloat(document.getElementById('commission').value)||0;
+  const targetBonus=annualBase*(bPct/100);
+  const expBonus=targetBonus*(bAch/100)+commission;
+  const totalCash=annualBase+expBonus;
+  document.getElementById('m-base').textContent=fmt(annualBase);
+  document.getElementById('m-bonus').textContent=fmt(targetBonus);
+  document.getElementById('m-exp-bonus').textContent=fmt(expBonus);
+  document.getElementById('m-cash').textContent=fmt(totalCash);
+
+  const medIdx=COV_IDX[document.getElementById('med-cov').value];
+  const denIdx=COV_IDX[document.getElementById('den-cov').value];
+  const visIdx=COV_IDX[document.getElementById('vis-cov').value];
+  const medPlan=PLANS.medical[document.getElementById('med-plan').value];
+  const denPlan=PLANS.dental[document.getElementById('den-plan').value];
+  const medEr=medPlan.er[medIdx],medEmp=medPlan.emp[medIdx];
+  const denEr=denPlan.er[denIdx],denEmp=denPlan.emp[denIdx];
+  const visEr=PLANS.vision.er[visIdx],visEmp=PLANS.vision.emp[visIdx];
+  renderCostBlock('med-costs',medEr,medEmp);
+  renderCostBlock('den-costs',denEr,denEmp);
+  renderCostBlock('vis-costs',visEr,visEmp);
+  const hsa=parseFloat(document.getElementById('b-hsa').value)||0;
+  const insTotal=renderInsuranceRows(annualBase);
+  const totalBenefitsEr=(medEr+denEr+visEr)*12+hsa+insTotal;
+  const totalEmpCost=(medEmp+denEmp+visEmp)*12;
+  document.getElementById('m-med-er').textContent=fmt(medEr*12);
+  document.getElementById('m-med-ee').textContent=fmt(medEmp*12);
+  document.getElementById('m-dv-er').textContent=fmt((denEr+visEr)*12);
+  document.getElementById('m-benefits').textContent=fmt(totalBenefitsEr);
+
+  const fmv=parseFloat(document.getElementById('shared-fmv').value)||0;
+  renderGrantTable(); renderGrantDetail(fmv);
+  let totalOpts=0,totalGrantVal=0,totalIntrinsicAnn=0;
+  grants.forEach(g=>{
+    const spread=Math.max(0,fmv-g.strike);
+    totalOpts+=g.options; totalGrantVal+=g.options*g.strike;
+    totalIntrinsicAnn+=(Math.round(g.options/Math.max(g.vestYears,1)))*spread;
+  });
+  document.getElementById('m-eq-total-opts').textContent=fmtN(totalOpts);
+  document.getElementById('m-eq-grant-val').textContent=fmt(totalGrantVal);
+  document.getElementById('m-eq-intrinsic-ann').textContent=totalIntrinsicAnn>0?fmt(totalIntrinsicAnn):'At strike';
+
+  const ptoValue=annualBase*(15/260);
+  document.getElementById('pto-value').textContent=fmt(ptoValue);
+  document.getElementById('pto-breakdown').textContent=fmt(ptoValue);
+  const perksVal=PHONE_STIPEND+ELEVATE+ptoValue;
+  document.getElementById('m-perks-total').textContent=fmt(perksVal);
+
+  const grandTotal=totalCash+totalBenefitsEr+totalIntrinsicAnn+perksVal;
+  document.getElementById('m-eq-pct').textContent=totalIntrinsicAnn>0&&grandTotal>0?Math.round(totalIntrinsicAnn/grandTotal*100)+'%':'At strike';
+  document.getElementById('s-total').textContent=fmt(grandTotal);
+  document.getElementById('s-ee-cost').textContent=fmt(totalEmpCost);
+  document.getElementById('s-breakdown').textContent=`Base ${fmt(annualBase)} · Bonus ${fmt(expBonus)} · Benefits ${fmt(totalBenefitsEr)} · Options ${fmt(totalIntrinsicAnn)} · Perks ${fmt(perksVal)}`;
+
+  const segs=[
+    {label:'Base salary',val:annualBase,color:'#534AB7'},
+    {label:'Variable pay',val:expBonus,color:'#1D9E75'},
+    {label:'Benefits (employer)',val:totalBenefitsEr,color:'#D85A30'},
+    {label:'Stock options (intrinsic)',val:totalIntrinsicAnn,color:'#378ADD'},
+    {label:'Perks & stipends',val:perksVal,color:'#BA7517'},
+  ];
+  document.getElementById('summary-rows').innerHTML=segs.filter(r=>r.val>0).map(r=>{
+    const pct=grandTotal>0?Math.round(r.val/grandTotal*100):0;
+    return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><span style="color:var(--text-secondary)">${r.label}</span><span>${fmt(r.val)} <span style="color:var(--text-tertiary)">(${pct}%)</span></span></div><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${r.color}"></div></div></div>`;
+  }).join('');
+  document.getElementById('donut-legend').innerHTML=segs.filter(r=>r.val>0).map(r=>`<div style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:6px"><div style="width:10px;height:10px;border-radius:50%;background:${r.color};flex-shrink:0"></div><span style="color:var(--text-secondary)">${r.label}</span><span style="margin-left:auto;font-weight:500">${grandTotal>0?Math.round(r.val/grandTotal*100):0}%</span></div>`).join('');
+}
+
+function drawDonut(){
+  const canvas=document.getElementById('donut');
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,140,140);
+  const annualBase=getAnnualBase();
+  const bPct=parseFloat(document.getElementById('bonus-pct').value)||0;
+  const bAch=parseFloat(document.getElementById('bonus-ach').value)||0;
+  const commission=parseFloat(document.getElementById('commission').value)||0;
+  const expBonus=annualBase*(bPct/100)*(bAch/100)+commission;
+  const medIdx=COV_IDX[document.getElementById('med-cov').value];
+  const denIdx=COV_IDX[document.getElementById('den-cov').value];
+  const visIdx=COV_IDX[document.getElementById('vis-cov').value];
+  const medPlan=PLANS.medical[document.getElementById('med-plan').value];
+  const denPlan=PLANS.dental[document.getElementById('den-plan').value];
+  const hsa=parseFloat(document.getElementById('b-hsa').value)||0;
+  const ins=calcInsurance(annualBase);
+  const insTotal=ins.life.annual+ins.add.annual+ins.std.annual+ins.ltd.annual;
+  const totalBenefitsEr=(medPlan.er[medIdx]+denPlan.er[denIdx]+PLANS.vision.er[visIdx])*12+hsa+insTotal;
+  const fmv=parseFloat(document.getElementById('shared-fmv').value)||0;
+  let totalIntrinsicAnn=0;
+  grants.forEach(g=>{totalIntrinsicAnn+=(Math.round(g.options/Math.max(g.vestYears,1)))*Math.max(0,fmv-g.strike);});
+  const ptoValue=annualBase*(15/260);
+  const perksVal=PHONE_STIPEND+ELEVATE+ptoValue;
+  const segs=[
+    {v:annualBase,c:'#534AB7'},{v:expBonus,c:'#1D9E75'},
+    {v:totalBenefitsEr,c:'#D85A30'},{v:totalIntrinsicAnn,c:'#378ADD'},{v:perksVal,c:'#BA7517'}
+  ].filter(s=>s.v>0);
+  const total=segs.reduce((s,x)=>s+x.v,0);
+  if(!total) return;
+  let angle=-Math.PI/2;
+  segs.forEach(s=>{
+    const sweep=(s.v/total)*2*Math.PI;
+    ctx.beginPath();ctx.moveTo(70,70);ctx.arc(70,70,60,angle,angle+sweep);ctx.closePath();
+    ctx.fillStyle=s.c;ctx.fill();angle+=sweep;
+  });
+  ctx.beginPath();ctx.arc(70,70,36,0,2*Math.PI);
+  ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--bg-primary')||'#fff';
+  ctx.fill();
+}
+
+renderGrantTable();
+calc();
+</script>
+</body>
+</html>
